@@ -4,6 +4,28 @@ const { fetchPage } = require('./lib/fetcher');
 const { addUKDCalculations } = require('./lib/html-modifier');
 const { rewriteLinks } = require('./lib/link-rewriter');
 
+// Helper function to determine the base URL
+function getBaseUrl(req) {
+    // Check for environment variable first
+    if (process.env.BASE_URL) {
+        return process.env.BASE_URL.replace(/\/$/, ''); // Remove trailing slash
+    }
+    
+    // Check for forwarded headers (common in proxy setups)
+    const forwardedHost = req.get('x-forwarded-host');
+    const forwardedProto = req.get('x-forwarded-proto');
+    
+    if (forwardedHost) {
+        const protocol = forwardedProto || (forwardedHost.includes('localhost') ? 'http' : 'https');
+        return `${protocol}://${forwardedHost}`;
+    }
+    
+    // Fall back to request host
+    const host = req.get('host');
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    return `${protocol}://${host}`;
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -56,8 +78,11 @@ app.get('/', async (req, res) => {
             modifiedHtml = await addUKDCalculations(originalHtml, fullUrl);
         }
         
+        // Determine the base URL for link rewriting
+        const baseUrl = getBaseUrl(req);
+        
         // Rewrite all links to go through proxy
-        const finalHtml = rewriteLinks(modifiedHtml, req.get('host'));
+        const finalHtml = rewriteLinks(modifiedHtml, baseUrl);
         
         res.send(finalHtml);
         

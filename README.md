@@ -93,6 +93,7 @@ docker run -d \
 #### Environment Variables
 - `PORT`: Server port (default: 3000)
 - `NODE_ENV`: Environment (production/development)
+- `BASE_URL`: Full base URL for the proxy (e.g., `https://ukd.sahinakkaya.dev`). If not set, auto-detects from request headers.
 
 ## Usage
 
