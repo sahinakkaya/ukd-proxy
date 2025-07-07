@@ -6,23 +6,25 @@ const { rewriteLinks } = require('./lib/link-rewriter');
 
 // Helper function to determine the base URL
 function getBaseUrl(req) {
-    // Check for environment variable first
-    if (process.env.BASE_URL) {
-        return process.env.BASE_URL.replace(/\/$/, ''); // Remove trailing slash
-    }
-    
-    // Check for forwarded headers (common in proxy setups)
-    const forwardedHost = req.get('x-forwarded-host');
-    const forwardedProto = req.get('x-forwarded-proto');
+    // Check for forwarded headers first (common in proxy setups like Cloudflare, nginx)
+    const forwardedHost = req.get('x-forwarded-host') || req.get('x-original-host');
+    const forwardedProto = req.get('x-forwarded-proto') || req.get('x-forwarded-protocol');
     
     if (forwardedHost) {
         const protocol = forwardedProto || (forwardedHost.includes('localhost') ? 'http' : 'https');
         return `${protocol}://${forwardedHost}`;
     }
     
-    // Fall back to request host
+    // Fall back to request host (preserve full host including subdomains)
     const host = req.get('host');
-    const protocol = host.includes('localhost') ? 'http' : 'https';
+    if (!host) {
+        console.warn('Warning: No host header found, using localhost fallback');
+        return 'http://localhost:3000';
+    }
+    
+    // Determine protocol based on host
+    const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
+    
     return `${protocol}://${host}`;
 }
 
@@ -80,6 +82,7 @@ app.get('/', async (req, res) => {
         
         // Determine the base URL for link rewriting
         const baseUrl = getBaseUrl(req);
+        console.log('Using base URL for link rewriting:', baseUrl);
         
         // Rewrite all links to go through proxy
         const finalHtml = rewriteLinks(modifiedHtml, baseUrl);
