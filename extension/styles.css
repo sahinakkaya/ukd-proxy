@@ -1,0 +1,227 @@
+/* UKD Calculator Styles - Seamless Integration */
+
+/* Summary box styles */
+.ukd-calculator-summary {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #007bff;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    max-width: 800px;
+}
+
+.ukd-calculator-error {
+    background: #f8d7da;
+    border: 2px solid #dc3545;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ukd-summary-header {
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #007bff;
+}
+
+.ukd-summary-header h3 {
+    margin: 0;
+    color: #007bff;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.ukd-summary-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ukd-summary-item {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #007bff;
+}
+
+.ukd-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9em;
+}
+
+.ukd-value {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #212529;
+}
+
+.ukd-value.positive {
+    color: #28a745;
+}
+
+.ukd-value.negative {
+    color: #dc3545;
+}
+
+.ukd-value.neutral {
+    color: #ffc107;
+}
+
+.ukd-value.highlight {
+    color: #007bff;
+    font-size: 1.2em;
+}
+
+/* Manual input styles */
+.ukd-manual-input {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ukd-manual-input label {
+    font-weight: bold;
+    color: #495057;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.ukd-manual-input input {
+    flex: 1;
+    min-width: 150px;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.ukd-manual-input input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.ukd-manual-input button {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ukd-manual-input button:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ukd-manual-input button:active {
+    transform: translateY(0);
+}
+
+/* Seamless table integration - match chess-results.com exactly */
+.ukd-header {
+    background: inherit !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    text-align: center !important;
+    padding: inherit !important;
+    border: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+}
+
+.ukd-data {
+    background: inherit !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    text-align: center !important;
+    padding: inherit !important;
+    border: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+}
+
+/* Color coding for rating changes - subtle approach */
+.ukd-data.positive-change {
+    color: #28a745 !important;
+    font-weight: bold !important;
+}
+
+.ukd-data.negative-change {
+    color: #dc3545 !important;
+    font-weight: bold !important;
+}
+
+.ukd-data.neutral-change {
+    color: #6c757d !important;
+    font-weight: normal !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .ukd-calculator-summary {
+        margin: 8px;
+        padding: 12px;
+    }
+    
+    .ukd-summary-content {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .ukd-summary-item {
+        padding: 8px;
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+    }
+    
+    .ukd-manual-input {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .ukd-manual-input input,
+    .ukd-manual-input button {
+        width: 100%;
+    }
+}
+
+/* Animation for new content */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ukd-calculator-summary {
+    animation: slideIn 0.3s ease-out;
+}
