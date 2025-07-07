@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="/static/styles.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+            text-align: left;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .examples {
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .examples h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .examples ul {
+            list-style: none;
+            padding: 0;
+        }
+        .examples li {
+            margin-bottom: 0.5rem;
+        }
+        .examples a {
+            color: #667eea;
+            text-decoration: none;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: block;
+            transition: background-color 0.2s;
+        }
+        .examples a:hover {
+            background: #e9ecef;
+        }
+        .features {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            text-align: left;
+        }
+        .feature {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .feature h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .feature p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .logo {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🧮</div>
+        <h1>UKD Calculator Proxy</h1>
+        <p class="subtitle">Browse chess-results.com with automatic UKD rating calculations</p>
+        
+        <% if (error) { %>
+            <div class="error">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <form method="post" action="/">
+            <div class="input-group">
+                <label for="url">Enter chess-results.com URL:</label>
+                <input 
+                    type="url" 
+                    id="url" 
+                    name="url" 
+                    placeholder="https://chess-results.com/tnr123456.aspx?lan=1&art=9&snr=123"
+                    required
+                    autocomplete="url"
+                >
+            </div>
+            <button type="submit">Browse with UKD Calculations</button>
+        </form>
+        
+        <div class="features">
+            <div class="feature">
+                <h4>📱 Universal Access</h4>
+                <p>Works on any device - desktop, mobile, tablet. No installation required.</p>
+            </div>
+            <div class="feature">
+                <h4>🔍 Smart Detection</h4>
+                <p>Automatically detects player results pages and adds UKD calculations.</p>
+            </div>
+            <div class="feature">
+                <h4>📊 Complete Analysis</h4>
+                <p>Shows expected scores, rating changes, and summary statistics.</p>
+            </div>
+            <div class="feature">
+                <h4>🌐 Seamless Browsing</h4>
+                <p>Navigate chess-results.com normally with enhanced UKD data.</p>
+            </div>
+        </div>
+        
+        <div class="examples">
+            <h3>Example URLs:</h3>
+            <ul>
+                <li><a href="/?page=chess-results.com/tnr123456.aspx">Tournament Results</a></li>
+                <li><a href="/?page=chess-results.com/tnr123456.aspx%3Flan%3D1%26art%3D9%26snr%3D123">Player Individual Results</a></li>
+                <li><a href="/?page=chess-results.com/tnr123456.aspx%3Flan%3D1%26art%3D20%26turdet%3DYES">Turkish Tournament Page</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-focus the URL input
+        document.getElementById('url').focus();
+        
+        // Handle form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const url = document.getElementById('url').value.trim();
+            
+            if (!url) {
+                e.preventDefault();
+                alert('Please enter a valid URL');
+                return;
+            }
+            
+            // Show loading state
+            const button = document.querySelector('button');
+            const originalText = button.textContent;
+            button.textContent = 'Loading...';
+            button.disabled = true;
+            
+            // Reset button state after a timeout (in case of navigation issues)
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            }, 5000);
+        });
+        
+        // Handle example link clicks
+        document.querySelectorAll('.examples a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const url = this.getAttribute('href');
+                window.location.href = url;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  ukd-proxy:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ukd-proxy.rule=Host(`ukd.sahinakkaya.dev`)"
+      - "traefik.http.routers.ukd-proxy.tls=true"
+      - "traefik.http.routers.ukd-proxy.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ukd-proxy.loadbalancer.server.port=3000"
+
+  # Optional: Add Traefik reverse proxy for SSL and domain management
+  # traefik:
+  #   image: traefik:v2.10
+  #   command:
+  #     - "--api.dashboard=true"
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #     - "--entrypoints.web.address=:80"
+  #     - "--entrypoints.websecure.address=:443"
+  #     - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+  #     - "--certificatesresolvers.letsencrypt.acme.email=your-email@example.com"
+  #     - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #     - "./letsencrypt:/letsencrypt"
+  #   restart: unless-stopped
