@@ -79,8 +79,8 @@
         // Calculate expected score for a player against an opponent
         expectedScore(playerRating, opponentRating) {
             // Handle special case where opponent has rating = 0 (unrated)
-            // For unrated opponents, return 0.5 to ensure symmetric rating changes:
-            // Win: +3.3 points, Loss: -3.3 points, Draw: 0 points
+            // For unrated opponents, use expected score of 0.5
+            // Combined with K=6, this gives: Win: +3, Loss: -3, Draw: 0
             if (opponentRating === 0) {
                 return 0.5;
             }
@@ -113,7 +113,9 @@
 
             for (const [opponentRating, result] of matches) {
                 const exp = this.expectedScore(playerRating, opponentRating);
-                const change = k * (result - exp);
+                // Use K=6 for unrated opponents, normal K for rated opponents
+                const kFactor = (opponentRating === 0) ? 6 : k;
+                const change = kFactor * (result - exp);
                 totalChange += change;
                 
                 calculations.push({
