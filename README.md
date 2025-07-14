@@ -148,7 +148,7 @@ ukd-calc/
 ├── server.js              # Main Express server
 ├── package.json           # Dependencies and scripts
 ├── lib/
-│   ├── ukd-calculator.js   # Core UKD calculation logic
+│   ├── ukd-calculator-universal.js   # Universal UKD calculation logic (Node.js + browser)
 │   ├── fetcher.js         # Page fetching with caching
 │   ├── html-modifier.js    # HTML parsing and UKD injection
 │   └── link-rewriter.js    # URL rewriting for proxy
