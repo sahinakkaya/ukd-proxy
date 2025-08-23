@@ -147,9 +147,43 @@
             }
         }
 
+        // Calculate potential UKD changes for ongoing matches
+        calculatePotentialChanges(playerRating, ongoingMatches) {
+            const potentialResults = [];
+            
+            for (const opponentRating of ongoingMatches) {
+                const winChange = this.calculateSingleChange(playerRating, opponentRating, 1);
+                const drawChange = this.calculateSingleChange(playerRating, opponentRating, 0.5);
+                const lossChange = this.calculateSingleChange(playerRating, opponentRating, 0);
+                
+                potentialResults.push({
+                    opponent: opponentRating,
+                    win: winChange,
+                    draw: drawChange,
+                    loss: lossChange
+                });
+            }
+            
+            return potentialResults;
+        }
+
+        // Calculate change for a single match outcome
+        calculateSingleChange(playerRating, opponentRating, result) {
+            const exp = this.expectedScore(playerRating, opponentRating);
+            const kFactor = (opponentRating === 0) ? 6 : this.getKFactor(playerRating);
+            const change = kFactor * (result - exp);
+            
+            return {
+                expected: exp,
+                change: change,
+                result: result
+            };
+        }
+
         // Browser DOM-based extraction
         extractMatchDataFromDOM(document) {
             const matches = [];
+            const ongoingMatches = [];
             const skippedRounds = new Set();
             let playerRating = null;
 
@@ -210,19 +244,23 @@
                             } else if (matchResult.match) {
                                 matches.push(matchResult.match);
                                 this.log('Found match - Opponent rating:', matchResult.match[0], 'Result:', matchResult.match[1]);
+                            } else if (matchResult.ongoingMatch) {
+                                ongoingMatches.push(matchResult.ongoingMatch);
+                                this.log('Found ongoing match - Opponent rating:', matchResult.ongoingMatch);
                             }
                         }
                     }
                 }
             }
 
-            this.log('Final results - Player rating:', playerRating, 'Matches:', matches.length);
-            return { playerRating, matches, skippedRounds };
+            this.log('Final results - Player rating:', playerRating, 'Matches:', matches.length, 'Ongoing:', ongoingMatches.length);
+            return { playerRating, matches, ongoingMatches, skippedRounds };
         }
 
         // Server Cheerio-based extraction
         extractMatchDataFromCheerio($) {
             const matches = [];
+            const ongoingMatches = [];
             const skippedRounds = new Set();
             let playerRating = null;
 
@@ -286,14 +324,17 @@
                             } else if (matchResult.match) {
                                 matches.push(matchResult.match);
                                 this.log('Found match - Opponent rating:', matchResult.match[0], 'Result:', matchResult.match[1]);
+                            } else if (matchResult.ongoingMatch) {
+                                ongoingMatches.push(matchResult.ongoingMatch);
+                                this.log('Found ongoing match - Opponent rating:', matchResult.ongoingMatch);
                             }
                         }
                     });
                 }
             });
 
-            this.log('Final results - Player rating:', playerRating, 'Matches:', matches.length);
-            return { playerRating, matches, skippedRounds };
+            this.log('Final results - Player rating:', playerRating, 'Matches:', matches.length, 'Ongoing:', ongoingMatches.length);
+            return { playerRating, matches, ongoingMatches, skippedRounds };
         }
 
         // Helper method to find column indices (DOM version)
@@ -399,6 +440,11 @@
                 return { match: [opponentRating, result] };
             }
             
+            // If we have opponent rating but no result, it's an ongoing match
+            if (opponentRating !== null && result === null) {
+                return { ongoingMatch: opponentRating };
+            }
+            
             return {};
         }
 
@@ -443,6 +489,11 @@
             
             if (opponentRating !== null && result !== null) {
                 return { match: [opponentRating, result] };
+            }
+            
+            // If we have opponent rating but no result, it's an ongoing match
+            if (opponentRating !== null && result === null) {
+                return { ongoingMatch: opponentRating };
             }
             
             return {};
