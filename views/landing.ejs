@@ -90,33 +90,61 @@
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
-        .examples {
+        .tournaments, .examples {
             margin-top: 2rem;
             text-align: left;
         }
-        .examples h3 {
+        .tournaments h3, .examples h3 {
             color: #333;
             margin-bottom: 1rem;
         }
-        .examples ul {
+        .tournaments .source {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .tournaments ul, .examples ul {
             list-style: none;
             padding: 0;
         }
-        .examples li {
+        .tournaments li, .examples li {
             margin-bottom: 0.5rem;
         }
-        .examples a {
+        .tournaments a, .examples a {
             color: #667eea;
             text-decoration: none;
-            font-family: monospace;
             background: #f8f9fa;
-            padding: 4px 8px;
+            padding: 8px 12px;
             border-radius: 4px;
             display: block;
             transition: background-color 0.2s;
+            font-size: 0.9rem;
         }
-        .examples a:hover {
+        .tournaments a:hover, .examples a:hover {
             background: #e9ecef;
+        }
+        .tournament-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tournament-name {
+            font-weight: 500;
+            color: #333;
+        }
+        .tournament-category {
+            font-size: 0.8rem;
+            color: #666;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+        }
+        .no-tournaments {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 1rem;
         }
         .features {
             margin-top: 2rem;
@@ -200,6 +228,33 @@
                 <p>Navigate chess-results.com normally with enhanced UKD data.</p>
             </div>
         </div>
+        
+        <% if (tournaments && tournaments.length > 0) { %>
+        <div class="tournaments">
+            <h3>🏆 Current Tournaments</h3>
+            <p class="source">Live tournaments from <a href="https://izmir.tsf.org.tr/" target="_blank">İzmir TSF</a></p>
+            <ul>
+                <% tournaments.forEach(tournament => { %>
+                <li>
+                    <a href="<%= tournament.proxyUrl %>">
+                        <div class="tournament-item">
+                            <span class="tournament-name"><%= tournament.name %></span>
+                            <% if (tournament.category) { %>
+                                <span class="tournament-category"><%= tournament.category %></span>
+                            <% } %>
+                        </div>
+                    </a>
+                </li>
+                <% }); %>
+            </ul>
+        </div>
+        <% } else { %>
+        <div class="tournaments">
+            <h3>🏆 Current Tournaments</h3>
+            <p class="source">Live tournaments from <a href="https://izmir.tsf.org.tr/" target="_blank">İzmir TSF</a></p>
+            <div class="no-tournaments">No tournaments found at the moment</div>
+        </div>
+        <% } %>
         
         <div class="examples">
             <h3>Example URLs:</h3>

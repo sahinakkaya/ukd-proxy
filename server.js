@@ -3,6 +3,7 @@ const path = require('path');
 const { fetchPage } = require('./lib/fetcher');
 const { addUKDCalculations } = require('./lib/html-modifier');
 const { rewriteLinks } = require('./lib/link-rewriter');
+const { getCachedTournamentLinks } = require('./lib/tournament-fetcher');
 
 // Helper function to determine the base URL
 function getBaseUrl(req) {
@@ -48,9 +49,11 @@ app.get('/', async (req, res) => {
         
         // If no page specified, show landing page
         if (!targetUrl) {
+            const tournaments = await getCachedTournamentLinks();
             return res.render('landing', { 
                 title: 'UKD Calculator Proxy',
-                error: null 
+                error: null,
+                tournaments: tournaments
             });
         }
 
@@ -91,20 +94,24 @@ app.get('/', async (req, res) => {
         
     } catch (error) {
         console.error('Error processing request:', error);
+        const tournaments = await getCachedTournamentLinks();
         res.status(500).render('landing', { 
             title: 'UKD Calculator Proxy',
-            error: `Error loading page: ${error.message}` 
+            error: `Error loading page: ${error.message}`,
+            tournaments: tournaments
         });
     }
 });
 
 // Handle POST requests from landing page form
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
     const { url } = req.body;
     if (!url) {
+        const tournaments = await getCachedTournamentLinks();
         return res.render('landing', { 
             title: 'UKD Calculator Proxy',
-            error: 'Please enter a valid URL' 
+            error: 'Please enter a valid URL',
+            tournaments: tournaments
         });
     }
     
