@@ -70,6 +70,8 @@ class UKDCalculatorExtension {
                 
                 // Add calculation data to each game row
                 let calcIndex = 0;
+                let potentialIndex = 0;
+                const isEnglish = headerRow.textContent.includes('Res.');
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
                     const cells = row.querySelectorAll('td');
@@ -122,6 +124,33 @@ class UKDCalculatorExtension {
                             row.appendChild(changeCell);
                             
                             calcIndex++;
+                        } else if (ukdData.potentialChanges && potentialIndex < ukdData.potentialChanges.length) {
+                            // Add potential outcomes for upcoming matches
+                            const potential = ukdData.potentialChanges[potentialIndex];
+
+                            const expectedCell = document.createElement('td');
+                            expectedCell.className = cells[0].className + ' ukd-data';
+                            expectedCell.textContent = potential.win.expected.toFixed(2);
+
+                            const changeCell = document.createElement('td');
+                            changeCell.className = cells[0].className + ' ukd-data ukd-potential';
+
+                            const winText = (potential.win.change > 0 ? '+' : '') + potential.win.change.toFixed(1);
+                            const drawText = (potential.draw.change > 0 ? '+' : '') + potential.draw.change.toFixed(1);
+                            const lossText = (potential.loss.change > 0 ? '+' : '') + potential.loss.change.toFixed(1);
+
+                            const outcomes = document.createElement('div');
+                            outcomes.className = 'potential-outcomes-single';
+                            outcomes.title = isEnglish ? 'Win / Draw / Loss' : 'Galibiyet / Beraberlik / Mağlubiyet';
+                            outcomes.innerHTML = `
+                                <span class="outcome win">${winText}</span><span class="separator">/</span><span class="outcome draw">${drawText}</span><span class="separator">/</span><span class="outcome loss">${lossText}</span>
+                            `;
+
+                            changeCell.appendChild(outcomes);
+                            row.appendChild(expectedCell);
+                            row.appendChild(changeCell);
+
+                            potentialIndex++;
                         }
                     }
                 }
@@ -148,6 +177,13 @@ class UKDCalculatorExtension {
         
         if (!targetTable) return;
 
+        const headerRow = targetTable.querySelector('tr');
+        const isEnglish = headerRow && headerRow.textContent.includes('Res.');
+        const totalMatchCount = ukdData.calculations.length + ((ukdData.potentialChanges && ukdData.potentialChanges.length) || 0);
+        const matchCountText = ukdData.potentialChanges && ukdData.potentialChanges.length > 0
+            ? `${ukdData.calculations.length}/${totalMatchCount}`
+            : ukdData.calculations.length;
+
         // Create summary container
         const container = document.createElement('div');
         container.id = 'ukd-calculator-display';
@@ -155,36 +191,36 @@ class UKDCalculatorExtension {
         
         container.innerHTML = `
             <div class="ukd-summary-header">
-                <h3>🧮 UKD Hesaplama Özeti</h3>
+                <h3>🧮 ${isEnglish ? 'UKD Calculation Summary' : 'UKD Hesaplama Özeti'}</h3>
             </div>
             <div class="ukd-summary-content">
                 <div class="ukd-summary-item">
-                    <span class="ukd-label">Mevcut Rating:</span>
+                    <span class="ukd-label">${isEnglish ? 'Current Rating:' : 'Mevcut Rating:'}</span>
                     <span class="ukd-value">${playerRating}</span>
                 </div>
                 <div class="ukd-summary-item">
-                    <span class="ukd-label">Toplam Değişim:</span>
+                    <span class="ukd-label">${isEnglish ? 'Total Change:' : 'Toplam Değişim:'}</span>
                     <span class="ukd-value ${ukdData.totalChange > 0 ? 'positive' : ukdData.totalChange < 0 ? 'negative' : 'neutral'}">
                         ${ukdData.totalChange > 0 ? '+' : ''}${ukdData.totalChange.toFixed(2)}
                     </span>
                 </div>
                 <div class="ukd-summary-item">
-                    <span class="ukd-label">Yeni Rating:</span>
+                    <span class="ukd-label">${isEnglish ? 'New Rating:' : 'Yeni Rating:'}</span>
                     <span class="ukd-value highlight">${ukdData.newRating}</span>
                 </div>
                 <div class="ukd-summary-item">
-                    <span class="ukd-label">K-Faktör:</span>
+                    <span class="ukd-label">${isEnglish ? 'K-Factor:' : 'K-Faktör:'}</span>
                     <span class="ukd-value">${this.calculator.getKFactor(playerRating)}</span>
                 </div>
                 <div class="ukd-summary-item">
-                    <span class="ukd-label">Maç Sayısı:</span>
-                    <span class="ukd-value">${ukdData.calculations.length}</span>
+                    <span class="ukd-label">${isEnglish ? 'Matches:' : 'Tamamlanan maçlar:'}</span>
+                    <span class="ukd-value">${matchCountText}</span>
                 </div>
             </div>
             <div class="ukd-manual-input">
-                <label for="manual-rating">Manuel Rating:</label>
+                <label for="manual-rating">${isEnglish ? 'Manual Rating:' : 'Manuel Rating:'}</label>
                 <input type="number" id="manual-rating" min="1000" max="3000" placeholder="${playerRating}">
-                <button id="recalculate-ukd">Yeniden Hesapla</button>
+                <button id="recalculate-ukd">${isEnglish ? 'Recalculate' : 'Yeniden Hesapla'}</button>
             </div>
         `;
 
@@ -251,13 +287,14 @@ class UKDCalculatorExtension {
         console.log('UKD Calculator: Processing page...');
 
         try {
-            const { playerRating, matches, skippedRounds } = this.extractMatchData();
+            const { playerRating, matches, ongoingMatches, skippedRounds } = this.extractMatchData();
             const currentRating = manualRating || playerRating;
 
             console.log('UKD Calculator: Auto-detected rating:', playerRating);
             console.log('UKD Calculator: Manual rating:', manualRating);
             console.log('UKD Calculator: Using rating:', currentRating);
             console.log('UKD Calculator: Found matches:', matches.length);
+            console.log('UKD Calculator: Found ongoing matches:', ongoingMatches ? ongoingMatches.length : 0);
 
             if (!currentRating) {
                 console.log('UKD Calculator: Could not detect player rating');
@@ -265,7 +302,7 @@ class UKDCalculatorExtension {
                 return;
             }
 
-            if (matches.length === 0) {
+            if (matches.length === 0 && (!ongoingMatches || ongoingMatches.length === 0)) {
                 console.log('UKD Calculator: No matches found');
                 this.createErrorDisplay('No matches found on this page. Make sure you are on a player\'s results page.');
                 return;
@@ -273,9 +310,12 @@ class UKDCalculatorExtension {
 
             const ukdData = this.calculator.calculateUKDChange(currentRating, matches);
             ukdData.skippedRounds = skippedRounds; // Pass skipped rounds info to UI
+            ukdData.potentialChanges = ongoingMatches && ongoingMatches.length > 0
+                ? this.calculator.calculatePotentialChanges(currentRating, ongoingMatches)
+                : [];
             this.createUKDDisplay(currentRating, ukdData);
 
-            console.log('UKD Calculator: Successfully processed', matches.length, 'matches for rating', currentRating);
+            console.log('UKD Calculator: Successfully processed', matches.length, 'completed matches and', ukdData.potentialChanges.length, 'ongoing matches for rating', currentRating);
         } catch (error) {
             console.error('UKD Calculator: Error processing page:', error);
             this.createErrorDisplay('An error occurred while processing the page.');
