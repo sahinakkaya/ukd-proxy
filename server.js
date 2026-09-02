@@ -3,7 +3,7 @@ const path = require('path');
 const { fetchPage } = require('./lib/fetcher');
 const { addUKDCalculations } = require('./lib/html-modifier');
 const { rewriteLinks } = require('./lib/link-rewriter');
-const { getCachedTournamentLinks } = require('./lib/tournament-fetcher');
+const { getTournamentGroups, parseCities } = require('./lib/tournament-fetcher');
 
 // Helper function to determine the base URL
 function getBaseUrl(req) {
@@ -32,6 +32,18 @@ function getBaseUrl(req) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+async function renderLanding(req, res, { error = null, status = 200 } = {}) {
+    const cities = parseCities(req.query.cities);
+    const tournamentGroups = await getTournamentGroups(cities);
+
+    return res.status(status).render('landing', {
+        title: 'UKD Calculator Proxy',
+        error,
+        cities,
+        tournamentGroups
+    });
+}
+
 // Set EJS as template engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -49,12 +61,7 @@ app.get('/', async (req, res) => {
         
         // If no page specified, show landing page
         if (!targetUrl) {
-            const tournaments = await getCachedTournamentLinks();
-            return res.render('landing', { 
-                title: 'UKD Calculator Proxy',
-                error: null,
-                tournaments: tournaments
-            });
+            return renderLanding(req, res);
         }
 
         console.log('Fetching page:', targetUrl);
@@ -94,11 +101,9 @@ app.get('/', async (req, res) => {
         
     } catch (error) {
         console.error('Error processing request:', error);
-        const tournaments = await getCachedTournamentLinks();
-        res.status(500).render('landing', { 
-            title: 'UKD Calculator Proxy',
+        return renderLanding(req, res, {
             error: `Error loading page: ${error.message}`,
-            tournaments: tournaments
+            status: 500
         });
     }
 });
@@ -107,11 +112,9 @@ app.get('/', async (req, res) => {
 app.post('/', async (req, res) => {
     const { url } = req.body;
     if (!url) {
-        const tournaments = await getCachedTournamentLinks();
-        return res.render('landing', { 
-            title: 'UKD Calculator Proxy',
+        return renderLanding(req, res, {
             error: 'Please enter a valid URL',
-            tournaments: tournaments
+            status: 400
         });
     }
     

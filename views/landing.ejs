@@ -21,7 +21,7 @@
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            max-width: 600px;
+            max-width: 760px;
             width: 90%;
             text-align: center;
         }
@@ -49,7 +49,7 @@
             font-weight: 500;
             text-align: left;
         }
-        input[type="url"] {
+        input[type="url"], input[type="text"] {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e1e5e9;
@@ -58,7 +58,7 @@
             transition: border-color 0.3s;
             box-sizing: border-box;
         }
-        input[type="url"]:focus {
+        input[type="url"]:focus, input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -90,27 +90,120 @@
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
-        .tournaments, .examples {
+        .city-settings, .tournaments, .examples {
             margin-top: 2rem;
             text-align: left;
         }
-        .tournaments h3, .examples h3 {
+        .city-settings h3, .tournaments h3, .examples h3 {
             color: #333;
             margin-bottom: 1rem;
+        }
+        .city-help {
+            color: #666;
+            font-size: 0.9rem;
+            margin: -0.5rem 0 1rem;
+        }
+        .city-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .city-form input {
+            flex: 1;
+        }
+        .city-form button {
+            width: auto;
+            white-space: nowrap;
+        }
+        .city-error {
+            color: #c33;
+            font-size: 0.85rem;
+            margin: 0.5rem 0 0;
+        }
+        .city-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .city-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 6px 10px;
+            background: #eef0ff;
+            color: #4f55a5;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .remove-city {
+            width: auto;
+            padding: 0;
+            background: none;
+            color: #777;
+            font-size: 1.1rem;
+            line-height: 1;
+            box-shadow: none;
+        }
+        .remove-city:hover {
+            transform: none;
+            box-shadow: none;
+            color: #c33;
+        }
+        .quick-cities {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: #777;
+        }
+        .quick-city {
+            width: auto;
+            background: none;
+            color: #667eea;
+            padding: 2px 4px;
+            font-size: inherit;
+        }
+        .quick-city:hover {
+            transform: none;
+            box-shadow: none;
+            text-decoration: underline;
+        }
+        .city-group {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e8e8ee;
+        }
+        .city-group:first-of-type {
+            margin-top: 0;
+        }
+        .city-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        .city-heading h4 {
+            color: #333;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .city-heading a {
+            color: #667eea;
+            font-size: 0.8rem;
+            text-decoration: none;
         }
         .tournaments .source {
             font-size: 0.9rem;
             color: #666;
             margin-bottom: 1rem;
         }
-        .tournaments ul, .examples ul {
+        .tournament-list, .examples ul {
             list-style: none;
             padding: 0;
         }
-        .tournaments li, .examples li {
+        .tournament-list li, .examples li {
             margin-bottom: 0.5rem;
         }
-        .tournaments a, .examples a {
+        .tournament-list a, .examples a {
             color: #667eea;
             text-decoration: none;
             background: #f8f9fa;
@@ -120,7 +213,7 @@
             transition: background-color 0.2s;
             font-size: 0.9rem;
         }
-        .tournaments a:hover, .examples a:hover {
+        .tournament-list a:hover, .examples a:hover {
             background: #e9ecef;
         }
         .tournament-item {
@@ -180,6 +273,12 @@
             .logo {
                 font-size: 2rem;
             }
+            .city-form {
+                flex-direction: column;
+            }
+            .city-form button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -195,7 +294,7 @@
             </div>
         <% } %>
         
-        <form method="post" action="/">
+        <form id="url-form" method="post" action="/?cities=<%= encodeURIComponent(cities.join(',')) %>">
             <div class="input-group">
                 <label for="url">Enter chess-results.com URL:</label>
                 <input 
@@ -209,6 +308,39 @@
             </div>
             <button type="submit">Browse with UKD Calculations</button>
         </form>
+
+        <div class="city-settings">
+            <h3>📍 Tournament Cities</h3>
+            <p class="city-help">Add a city to load tournament links from its TSF province website. Your choices are saved on this device.</p>
+            <form id="city-form" class="city-form" method="get" action="/">
+                <input
+                    type="text"
+                    id="city"
+                    name="cities"
+                    placeholder="City name, e.g. İstanbul"
+                    aria-label="City name"
+                    maxlength="63"
+                    autocomplete="address-level1"
+                    required
+                >
+                <button type="submit">Add city</button>
+            </form>
+            <p id="city-error" class="city-error" hidden></p>
+            <div class="city-chips" aria-label="Selected cities">
+                <% tournamentGroups.forEach(group => { %>
+                    <span class="city-chip">
+                        <%= group.name %>
+                        <button type="button" class="remove-city" data-city="<%= group.city %>" aria-label="Remove <%= group.name %>">&times;</button>
+                    </span>
+                <% }); %>
+            </div>
+            <div class="quick-cities">
+                Quick add:
+                <button type="button" class="quick-city" data-city="istanbul">İstanbul</button>
+                <button type="button" class="quick-city" data-city="bursa">Bursa</button>
+                <button type="button" class="quick-city" data-city="ankara">Ankara</button>
+            </div>
+        </div>
         
         <div class="features">
             <div class="feature">
@@ -229,32 +361,37 @@
             </div>
         </div>
         
-        <% if (tournaments && tournaments.length > 0) { %>
         <div class="tournaments">
             <h3>🏆 Current Tournaments</h3>
-            <p class="source">Live tournaments from <a href="https://izmir.tsf.org.tr/" target="_blank">İzmir TSF</a></p>
-            <ul>
-                <% tournaments.forEach(tournament => { %>
-                <li>
-                    <a href="<%= tournament.proxyUrl %>">
-                        <div class="tournament-item">
-                            <span class="tournament-name"><%= tournament.name %></span>
-                            <% if (tournament.category) { %>
-                                <span class="tournament-category"><%= tournament.category %></span>
-                            <% } %>
-                        </div>
-                    </a>
-                </li>
-                <% }); %>
-            </ul>
+            <% tournamentGroups.forEach(group => { %>
+                <section class="city-group">
+                    <div class="city-heading">
+                        <h4><%= group.name %></h4>
+                        <a href="<%= group.sourceUrl %>" target="_blank" rel="noopener noreferrer">Visit <%= group.name %> TSF ↗</a>
+                    </div>
+                    <% if (group.error) { %>
+                        <div class="no-tournaments"><%= group.error %></div>
+                    <% } else if (group.tournaments.length === 0) { %>
+                        <div class="no-tournaments">No Chess-Results links found at the moment.</div>
+                    <% } else { %>
+                        <ul class="tournament-list">
+                            <% group.tournaments.forEach(tournament => { %>
+                            <li>
+                                <a href="<%= tournament.proxyUrl %>">
+                                    <div class="tournament-item">
+                                        <span class="tournament-name"><%= tournament.name %></span>
+                                        <% if (tournament.category) { %>
+                                            <span class="tournament-category"><%= tournament.category %></span>
+                                        <% } %>
+                                    </div>
+                                </a>
+                            </li>
+                            <% }); %>
+                        </ul>
+                    <% } %>
+                </section>
+            <% }); %>
         </div>
-        <% } else { %>
-        <div class="tournaments">
-            <h3>🏆 Current Tournaments</h3>
-            <p class="source">Live tournaments from <a href="https://izmir.tsf.org.tr/" target="_blank">İzmir TSF</a></p>
-            <div class="no-tournaments">No tournaments found at the moment</div>
-        </div>
-        <% } %>
         
         <div class="examples">
             <h3>Example URLs:</h3>
@@ -267,11 +404,42 @@
     </div>
     
     <script>
-        // Auto-focus the URL input
-        document.getElementById('url').focus();
+        const renderedCities = <%- JSON.stringify(cities) %>;
+        const storageKey = 'ukd-tournament-cities';
+        const queryHasCities = new URLSearchParams(window.location.search).has('cities');
+
+        function normalizeCity(value) {
+            return value.trim().toLocaleLowerCase('tr-TR')
+                .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+                .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function navigateToCities(cities) {
+            const uniqueCities = [...new Set(cities)].slice(0, 8);
+            if (uniqueCities.length === 0) uniqueCities.push('izmir');
+            localStorage.setItem(storageKey, JSON.stringify(uniqueCities));
+            const url = new URL(window.location.href);
+            url.searchParams.delete('page');
+            url.searchParams.set('cities', uniqueCities.join(','));
+            window.location.href = url.toString();
+        }
+
+        // A first visit defaults to İzmir. On later visits, restore the cities
+        // selected on this browser; an explicit URL always wins and is saved.
+        try {
+            const savedCities = JSON.parse(localStorage.getItem(storageKey));
+            if (!queryHasCities && Array.isArray(savedCities) && savedCities.length > 0 && savedCities.join(',') !== renderedCities.join(',')) {
+                navigateToCities(savedCities);
+            } else {
+                localStorage.setItem(storageKey, JSON.stringify(renderedCities));
+            }
+        } catch (error) {
+            localStorage.setItem(storageKey, JSON.stringify(renderedCities));
+        }
         
         // Handle form submission
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('url-form').addEventListener('submit', function(e) {
             const url = document.getElementById('url').value.trim();
             
             if (!url) {
@@ -281,7 +449,7 @@
             }
             
             // Show loading state
-            const button = document.querySelector('button');
+            const button = this.querySelector('button');
             const originalText = button.textContent;
             button.textContent = 'Loading...';
             button.disabled = true;
@@ -291,6 +459,44 @@
                 button.textContent = originalText;
                 button.disabled = false;
             }, 5000);
+        });
+
+        document.getElementById('city-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cityInput = document.getElementById('city');
+            const city = normalizeCity(cityInput.value);
+            const cityError = document.getElementById('city-error');
+
+            if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(city)) {
+                cityError.textContent = 'Enter a valid city name.';
+                cityError.hidden = false;
+                return;
+            }
+            if (renderedCities.includes(city)) {
+                cityError.textContent = 'That city is already shown.';
+                cityError.hidden = false;
+                return;
+            }
+            if (renderedCities.length >= 8) {
+                cityError.textContent = 'You can show up to 8 cities.';
+                cityError.hidden = false;
+                return;
+            }
+
+            navigateToCities([...renderedCities, city]);
+        });
+
+        document.querySelectorAll('.remove-city').forEach(button => {
+            button.addEventListener('click', () => {
+                navigateToCities(renderedCities.filter(city => city !== button.dataset.city));
+            });
+        });
+
+        document.querySelectorAll('.quick-city').forEach(button => {
+            button.disabled = renderedCities.includes(button.dataset.city);
+            button.addEventListener('click', () => {
+                if (renderedCities.length < 8) navigateToCities([...renderedCities, button.dataset.city]);
+            });
         });
         
         // Handle example link clicks
