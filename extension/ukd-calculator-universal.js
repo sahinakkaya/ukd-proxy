@@ -180,12 +180,50 @@
             };
         }
 
+        normalizeRatingLabel(label) {
+            return label
+                .trim()
+                .toLocaleLowerCase('tr-TR')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*:\s*$/, '');
+        }
+
+        getPlayerRatingLabelPriority(label) {
+            const normalized = this.normalizeRatingLabel(label);
+
+            if (normalized.includes('rating national') ||
+                normalized.includes('national rating') ||
+                normalized.includes('ulusal rating') ||
+                normalized === 'rtgn' || normalized === 'ukd') {
+                return 100;
+            }
+            if (normalized === 'rating' || normalized === 'rtg') return 20;
+            if (normalized.includes('rating')) return 10;
+            return 0;
+        }
+
+        getRatingColumnPriority(header) {
+            const normalized = this.normalizeRatingLabel(header);
+
+            if (normalized.includes('rating national') ||
+                normalized.includes('national rating') ||
+                normalized.includes('ulusal rating') ||
+                normalized === 'rtgn' || normalized === 'ukd') {
+                return 100;
+            }
+            if (normalized === 'rating' || normalized === 'rtg') return 50;
+            if (normalized === 'elo' || normalized === 'rtgi' || normalized.includes('international')) return 20;
+            if (normalized.includes('rating')) return 10;
+            return 0;
+        }
+
         // Browser DOM-based extraction
         extractMatchDataFromDOM(document) {
             const matches = [];
             const ongoingMatches = [];
             const skippedRounds = new Set();
             let playerRating = null;
+            let playerRatingPriority = 0;
 
             // Extract player rating from player info table
             const playerInfoTables = document.querySelectorAll('table.CRs1');
@@ -197,12 +235,12 @@
                         const label = cells[0].textContent.trim();
                         const value = cells[1].textContent.trim();
                         
-                        if (label.toLowerCase().includes('rating') || 
-                            label.toLowerCase().includes('ulusal rating') ||
-                            label.toLowerCase() === 'rtg') {
+                        const labelPriority = this.getPlayerRatingLabelPriority(label);
+                        if (labelPriority > playerRatingPriority) {
                             const rating = parseInt(value);
-                            if (rating >= 1000 && rating <= 3000 && !playerRating) {
+                            if (rating >= 1000 && rating <= 3000) {
                                 playerRating = rating;
+                                playerRatingPriority = labelPriority;
                                 this.log('Found player rating:', rating, 'from label:', label);
                             }
                         }
@@ -263,6 +301,7 @@
             const ongoingMatches = [];
             const skippedRounds = new Set();
             let playerRating = null;
+            let playerRatingPriority = 0;
 
             // Extract player rating from player info table
             $('table.CRs1').each((tableIndex, table) => {
@@ -277,12 +316,12 @@
                         const label = $(cells[0]).text().trim();
                         const value = $(cells[1]).text().trim();
                         
-                        if (label.toLowerCase().includes('rating') || 
-                            label.toLowerCase().includes('ulusal rating') ||
-                            label.toLowerCase() === 'rtg') {
+                        const labelPriority = this.getPlayerRatingLabelPriority(label);
+                        if (labelPriority > playerRatingPriority) {
                             const rating = parseInt(value);
-                            if (rating >= 1000 && rating <= 3000 && !playerRating) {
+                            if (rating >= 1000 && rating <= 3000) {
                                 playerRating = rating;
+                                playerRatingPriority = labelPriority;
                                 this.log('Found player rating:', rating, 'from label:', label);
                             }
                         }
@@ -341,25 +380,19 @@
         findColumnIndices(headerRow) {
             const headerCells = headerRow.querySelectorAll('th');
             let ratingColumnIndex = -1;
+            let ratingColumnPriority = 0;
             let resultColumnIndex = -1;
             
             for (let i = 0; i < headerCells.length; i++) {
                 const headerText = headerCells[i].textContent.trim().toLowerCase();
                 
-                if (headerText === 'ukd') {
+                const columnPriority = this.getRatingColumnPriority(headerText);
+                if (columnPriority > ratingColumnPriority) {
                     ratingColumnIndex = i;
-                } else if (headerText === 'rtgn') {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'elo' && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'rtg' && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'rtgi' && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText.includes('rating') && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'sonuç' || headerText.includes('sonuc') || 
-                          headerText === 'res.' || headerText.includes('res')) {
+                    ratingColumnPriority = columnPriority;
+                }
+                if (headerText === 'sonuç' || headerText.includes('sonuc') ||
+                    headerText === 'res.' || headerText.includes('res')) {
                     resultColumnIndex = i;
                 }
             }
@@ -371,25 +404,19 @@
         findColumnIndicesCheerio(headerRow, $) {
             const headerCells = headerRow.find('th');
             let ratingColumnIndex = -1;
+            let ratingColumnPriority = 0;
             let resultColumnIndex = -1;
             
             headerCells.each((i, cell) => {
                 const headerText = $(cell).text().trim().toLowerCase();
                 
-                if (headerText === 'ukd') {
+                const columnPriority = this.getRatingColumnPriority(headerText);
+                if (columnPriority > ratingColumnPriority) {
                     ratingColumnIndex = i;
-                } else if (headerText === 'rtgn') {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'elo' && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'rtg' && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'rtgi' && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText.includes('rating') && ratingColumnIndex === -1) {
-                    ratingColumnIndex = i;
-                } else if (headerText === 'sonuç' || headerText.includes('sonuc') || 
-                          headerText === 'res.' || headerText.includes('res')) {
+                    ratingColumnPriority = columnPriority;
+                }
+                if (headerText === 'sonuç' || headerText.includes('sonuc') ||
+                    headerText === 'res.' || headerText.includes('res')) {
                     resultColumnIndex = i;
                 }
             });
